@@ -1,6 +1,6 @@
 package com.prajjwal.securebanking.model;
 
-import com.prajjwal.securebanking.model.role.Roles;
+import com.prajjwal.securebanking.model.enums.Roles;
 import jakarta.persistence.*;
 import lombok.*;
 import org.hibernate.annotations.CreationTimestamp;
