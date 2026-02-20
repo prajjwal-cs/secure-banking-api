@@ -1,11 +1,15 @@
 package com.prajjwal.securebanking.model;
 
+import com.prajjwal.securebanking.model.enums.AccountStatus;
 import com.prajjwal.securebanking.model.enums.AccountType;
 import jakarta.persistence.*;
+import lombok.Getter;
+import lombok.Setter;
 
-import java.math.BigDecimal;
 import java.time.LocalDateTime;
 
+@Getter
+@Setter
 @Entity
 @Table(name = "accounts")
 public class Account {
@@ -14,6 +18,9 @@ public class Account {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
+    @Column(unique = true, nullable = false)
+    private String accountNumber;
+
     @ManyToOne
     @JoinColumn(name = "user_id")
     private User user;
@@ -21,11 +28,10 @@ public class Account {
     @Enumerated(value = EnumType.STRING)
     private AccountType type;
 
-    @Column(nullable = false)
-    private BigDecimal balance;
+    private double balance = 0.0;
 
-    @Column(nullable = false)
-    private boolean status;
+    @Enumerated(value = EnumType.STRING)
+    private AccountStatus status = AccountStatus.ACTIVE;
 
     private LocalDateTime createdAt;
 }
