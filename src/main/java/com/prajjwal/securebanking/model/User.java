@@ -5,6 +5,7 @@ import jakarta.persistence.*;
 import lombok.*;
 import org.hibernate.annotations.CreationTimestamp;
 
+import java.time.Instant;
 import java.time.LocalDateTime;
 
 @Entity
@@ -38,4 +39,6 @@ public class User {
     @CreationTimestamp
     private LocalDateTime createdAt;
 
+    private int failedAttempts;
+    private Instant lockTime;
 }

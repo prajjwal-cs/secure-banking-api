@@ -18,9 +18,14 @@ import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
+import java.time.Instant;
+
 @Log4j2
 @Service
 public class AuthService {
+
+    private static final int MAX_FAILED_ATTEMPTS = 5;
+    private static final long LOCK_DURATION = 30;
 
     private final UserRepository userRepository;
     private final PasswordEncoder passwordEncoder;
@@ -39,21 +44,55 @@ public class AuthService {
     }
 
     public AuthResponseDto login(String username, String password) {
-        Authentication authentication = authenticationManager.authenticate(
-                new UsernamePasswordAuthenticationToken(username, password)
-        );
+        try {
+            Authentication authentication = authenticationManager.authenticate(
+                    new UsernamePasswordAuthenticationToken(username, password)
+            );
 
-        SecurityContextHolder.getContext().setAuthentication(authentication);
-        log.info("User {} successfully authenticated", username);
+            resetFailedAttempts(username);
 
-        String accessToken = jwtProvider.generateToken(authentication);
+            SecurityContextHolder.getContext().setAuthentication(authentication);
+            log.info("User {} successfully authenticated", username);
 
-        User user = userRepository.findByUsername(username).orElseThrow(() ->
-                new UsernameNotFoundException("User not found"));
+            String accessToken = jwtProvider.generateToken(authentication);
 
-        RefreshToken refreshToken = refreshTokenService.createRefreshToken(user);
+            User user = userRepository.findByUsername(username).orElseThrow(() ->
+                    new UsernameNotFoundException("User not found"));
 
-        return new AuthResponseDto(accessToken, refreshToken.getToken());
+            RefreshToken refreshToken = refreshTokenService.createRefreshToken(user);
+
+            return new AuthResponseDto(accessToken, refreshToken.getToken());
+        } catch (BadCredentialsException ex) {
+            increaseFailedAttempts(username);
+            log.warn("Invalid credentials");
+        }
+        return new AuthResponseDto(null, null);
+    }
+
+    private void resetFailedAttempts(String username) {
+        User user = userRepository.findByUsername(username)
+                .orElseThrow(() -> new UsernameNotFoundException("User not found."));
+
+        user.setFailedAttempts(0);
+        user.setActive(true);
+        user.setLockTime(null);
+
+        userRepository.save(user);
+    }
+
+    private void increaseFailedAttempts(String username) {
+        User user = userRepository.findByUsername(username)
+                .orElseThrow(() -> new UsernameNotFoundException("User not found."));
+
+        int newFailedCount = user.getFailedAttempts() + 1;
+        user.setFailedAttempts(newFailedCount);
+
+        if (newFailedCount >= MAX_FAILED_ATTEMPTS) {
+            user.setActive(false);
+            user.setLockTime(Instant.now());
+        }
+
+        userRepository.save(user);
     }
 
     @Transactional
