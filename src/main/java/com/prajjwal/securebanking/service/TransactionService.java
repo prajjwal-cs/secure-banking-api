@@ -56,7 +56,7 @@ public class TransactionService {
 
     @Transactional
     public TransactionResponseDto withdraw(String fromAccount, Double amount) {
-        Account account = accountRepository.findByAccountNumber(fromAccount)
+        Account account = accountRepository.findByAccountNumberForUpdate(fromAccount)
                 .orElseThrow(() -> new ResourceNotFoundException("Account not found."));
 
         validateAccount(account);
@@ -81,10 +81,10 @@ public class TransactionService {
 
     @Transactional
     public TransactionResponseDto transfer(String fromAccount, String toAccount, Double amount) {
-        Account sender = accountRepository.findByAccountNumber(fromAccount)
+        Account sender = accountRepository.findByAccountNumberForUpdate(fromAccount)
                 .orElseThrow(() -> new ResourceNotFoundException("Sender not found."));
 
-        Account receiver = accountRepository.findByAccountNumber(toAccount)
+        Account receiver = accountRepository.findByAccountNumberForUpdate(toAccount)
                 .orElseThrow(() -> new ResourceNotFoundException("Receiver not found."));
 
         validateAccount(sender);

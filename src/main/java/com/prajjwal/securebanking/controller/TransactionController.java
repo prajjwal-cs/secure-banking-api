@@ -30,6 +30,7 @@ public class TransactionController {
         return ResponseEntity.ok(transactionService.withdraw(fromAccount, amount));
     }
 
+    @PostMapping("/transfer")
     public ResponseEntity<TransactionResponseDto> transfer(
             @RequestBody TransactionRequestDto transactionRequest) {
         return ResponseEntity.ok(transactionService.transfer(

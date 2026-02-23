@@ -4,6 +4,7 @@ import com.prajjwal.securebanking.dto.ErrorResponseDto;
 import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.orm.ObjectOptimisticLockingFailureException;
 import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.authentication.LockedException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
@@ -49,6 +50,16 @@ public class GlobalExceptionHandler {
             LockedException exception, HttpServletRequest request) {
         return buildErrorResponse("Account is Locked. Try again later.",
                 HttpStatus.LOCKED, request);
+    }
+
+    @ExceptionHandler(ObjectOptimisticLockingFailureException.class)
+    public ResponseEntity<ErrorResponseDto> handleOptimisticLock(
+            Exception ex, HttpServletRequest request) {
+        return buildErrorResponse(
+                "Transaction conflict. Please retry!",
+                HttpStatus.CONFLICT,
+                request
+        );
     }
 
 
