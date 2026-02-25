@@ -41,7 +41,8 @@ public class SecurityConfig {
                 ).exceptionHandling(ex ->
                         ex.authenticationEntryPoint(authenticationEntryPoint)
                 ).authorizeHttpRequests(authorize -> {
-                            authorize.requestMatchers("/bank/login/**").permitAll();
+                            authorize.requestMatchers(HttpMethod.POST, "/bank/auth/login",
+                                    "/bank/auth/register", "/bank/auth/refresh").permitAll();
                             authorize.requestMatchers(HttpMethod.OPTIONS, "/**").permitAll();
                             authorize.requestMatchers(HttpMethod.POST, "/bank/admin/**").hasRole("ADMIN");
                             authorize.anyRequest().authenticated();

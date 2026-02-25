@@ -1,4 +1,4 @@
 package com.prajjwal.securebanking.dto;
 
-public class Response {
+public class LoginResponseDto {
 }
