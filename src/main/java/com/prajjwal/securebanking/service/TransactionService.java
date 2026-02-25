@@ -20,10 +20,14 @@ public class TransactionService {
 
     private final TransactionRepository transactionRepository;
     private final AccountRepository accountRepository;
+    private final AuditLogService auditLogService;
 
-    public TransactionService(TransactionRepository transactionRepository, AccountRepository accountRepository) {
+    public TransactionService(TransactionRepository transactionRepository,
+                              AccountRepository accountRepository,
+                              AuditLogService auditLogService) {
         this.transactionRepository = transactionRepository;
         this.accountRepository = accountRepository;
+        this.auditLogService = auditLogService;
     }
 
     public void validateAccount(Account account) {
@@ -51,6 +55,9 @@ public class TransactionService {
 
         transactionRepository.save(transaction);
 
+        auditLogService.log(account.getUser().getUsername(),
+                "DEPOSIT", account.getAccountNumber(), transaction.getTransactionId());
+
         return mapToResponse(transaction);
     }
 
@@ -75,6 +82,9 @@ public class TransactionService {
         transaction.setCreatedAt(Instant.now());
 
         transactionRepository.save(transaction);
+
+        auditLogService.log(account.getUser().getUsername(),
+                "WITHDRAW", account.getAccountNumber(), transaction.getTransactionId());
 
         return mapToResponse(transaction);
     }
@@ -107,6 +117,12 @@ public class TransactionService {
         transaction.setCreatedAt(Instant.now());
 
         transactionRepository.save(transaction);
+
+        auditLogService.log(sender.getUser().getUsername(),
+                "TRANSFER",
+                sender.getAccountNumber(),
+                transaction.getTransactionId()
+                );
 
         return mapToResponse(transaction);
     }
