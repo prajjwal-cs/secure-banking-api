@@ -10,7 +10,6 @@ import java.time.Instant;
 @Builder
 @Getter
 @Setter
-@RequiredArgsConstructor
 public class ErrorResponseDto {
     private Instant timestamp;
     private int status;
