@@ -2,6 +2,8 @@ package com.prajjwal.securebanking.service;
 
 import com.prajjwal.securebanking.dto.AuthResponseDto;
 import com.prajjwal.securebanking.dto.RegistrationDto;
+import com.prajjwal.securebanking.exception.InvalidCredentialsException;
+import com.prajjwal.securebanking.exception.UserAlreadyExistException;
 import com.prajjwal.securebanking.model.RefreshToken;
 import com.prajjwal.securebanking.model.User;
 import com.prajjwal.securebanking.model.enums.Roles;
@@ -25,7 +27,6 @@ import java.time.Instant;
 public class AuthService {
 
     private static final int MAX_FAILED_ATTEMPTS = 5;
-    private static final long LOCK_DURATION = 30;
 
     private final UserRepository userRepository;
     private final PasswordEncoder passwordEncoder;
@@ -64,9 +65,9 @@ public class AuthService {
             return new AuthResponseDto(accessToken, refreshToken.getToken());
         } catch (BadCredentialsException ex) {
             increaseFailedAttempts(username);
-            log.warn("Invalid credentials");
+            log.warn("Invalid credentials for user {}", username);
+            throw new InvalidCredentialsException("Invalid username or password");
         }
-        return new AuthResponseDto(null, null);
     }
 
     private void resetFailedAttempts(String username) {
@@ -99,11 +100,11 @@ public class AuthService {
     public void register(RegistrationDto registrationDto) {
         if (userRepository.existsByUsername(registrationDto.getUsername())) {
             log.warn("Registration failed. Username already exists: {}", registrationDto.getUsername());
-//            throw new UserAlreadyExistException("Username already taken.");
+            throw new UserAlreadyExistException("Username already taken.");
         }
         if (userRepository.existsByEmail(registrationDto.getEmail())) {
             log.warn("Registration failed. Email already exists: {}", registrationDto.getEmail());
-//            throw new UserAlreadyExistException("Email already exists.");
+            throw new UserAlreadyExistException("Email already exists.");
         }
 
         User user = new User();
